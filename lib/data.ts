@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs'
 import path from 'path'
-import { kv } from '@vercel/kv'
+import { Redis } from '@upstash/redis'
 
 export interface Subscriber {
   email: string
@@ -10,19 +10,38 @@ export interface Subscriber {
 
 const SUBSCRIBERS_KEY = 'subscribers'
 
-// Check if we're using Vercel KV (production)
-function useKV(): boolean {
-  return !!process.env.KV_REST_API_URL && !!process.env.KV_REST_API_TOKEN
+// Initialize Upstash Redis client (only in production)
+let redis: Redis | null = null
+
+function getRedis(): Redis | null {
+  if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+    if (!redis) {
+      redis = new Redis({
+        url: process.env.UPSTASH_REDIS_REST_URL,
+        token: process.env.UPSTASH_REDIS_REST_TOKEN,
+      })
+    }
+    return redis
+  }
+  return null
 }
 
-// Read subscribers - uses KV in production, file system locally
+// Check if we're using Upstash Redis (production)
+function useRedis(): boolean {
+  return !!process.env.UPSTASH_REDIS_REST_URL && !!process.env.UPSTASH_REDIS_REST_TOKEN
+}
+
+// Read subscribers - uses Redis in production, file system locally
 export async function getSubscribers(): Promise<Subscriber[]> {
-  if (useKV()) {
+  if (useRedis()) {
     try {
-      const data = await kv.get<Subscriber[]>(SUBSCRIBERS_KEY)
+      const client = getRedis()
+      if (!client) return []
+      
+      const data = await client.get<Subscriber[]>(SUBSCRIBERS_KEY)
       return data || []
     } catch (error) {
-      console.error('Error reading from KV:', error)
+      console.error('Error reading from Redis:', error)
       return []
     }
   } else {
@@ -58,12 +77,16 @@ export async function addSubscriber(email: string, source?: string): Promise<Sub
   
   subscribers.push(newSubscriber)
   
-  if (useKV()) {
-    // Save to Vercel KV
+  if (useRedis()) {
+    // Save to Upstash Redis
     try {
-      await kv.set(SUBSCRIBERS_KEY, subscribers)
+      const client = getRedis()
+      if (!client) {
+        throw new Error('Redis client not available')
+      }
+      await client.set(SUBSCRIBERS_KEY, subscribers)
     } catch (error) {
-      console.error('Error saving to KV:', error)
+      console.error('Error saving to Redis:', error)
       throw new Error('Failed to save subscriber')
     }
   } else {

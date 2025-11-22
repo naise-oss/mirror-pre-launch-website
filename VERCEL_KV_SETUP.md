@@ -1,6 +1,6 @@
-# Vercel KV Setup Guide
+# Upstash Redis Setup Guide
 
-Your website now uses Vercel KV (Redis) for storing email subscriptions in production. This is required for the website to work on Vercel.
+Your website now uses Upstash Redis for storing email subscriptions in production. This is required for the website to work on Vercel.
 
 ## Quick Setup (2 minutes):
 
@@ -8,23 +8,25 @@ Your website now uses Vercel KV (Redis) for storing email subscriptions in produ
    - Open your project: https://vercel.com/dashboard
    - Click on your project: `mirror-pre-launch-website`
 
-2. **Create Vercel KV Database:**
+2. **Create Upstash Redis Database:**
    - Go to **Storage** tab (in the left sidebar)
-   - Click **"Create Database"**
-   - Select **"KV"** (Key-Value store)
-   - Name it: `mirror-kv` (or any name)
+   - Click **"Create Database"** or **"Browse Storage"**
+   - In the modal, find **"Upstash"** (it says "Serverless DB (Redis, Vector, Queue, Search)")
+   - Click on **Upstash**
+   - Click **"Continue"** or **"Create"**
+   - Name it: `mirror-redis` (or any name)
    - Select region closest to you
    - Click **"Create"**
 
-3. **Link KV to Your Project:**
-   - After creating, click **"Link to Project"**
+3. **Link Upstash to Your Project:**
+   - After creating, click **"Link to Project"** or it will prompt you
    - Select your `mirror-pre-launch-website` project
    - Click **"Link"**
 
 4. **Environment Variables (Auto-added):**
    - Vercel automatically adds these environment variables:
-     - `KV_REST_API_URL`
-     - `KV_REST_API_TOKEN`
+     - `UPSTASH_REDIS_REST_URL`
+     - `UPSTASH_REDIS_REST_TOKEN`
    - You don't need to add them manually!
 
 5. **Redeploy:**
