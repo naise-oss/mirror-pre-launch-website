@@ -76,7 +76,7 @@ export function JoinUsSection() {
         </form>
 
         {submitted && (
-          <p className="text-green-600 font-medium">Welcome! Check your email for updates.</p>
+          <p className="text-green-600 font-medium">Thank you! We'll be in touch with you soon.</p>
         )}
         {error && (
           <p className="text-red-600 font-medium">{error}</p>

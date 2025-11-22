@@ -70,7 +70,7 @@ export function WaitlistSection() {
         </form>
 
         {submitted && (
-          <p className="mt-4 text-purple-600 font-medium">Thanks for joining! Check your email for next steps.</p>
+          <p className="mt-4 text-purple-600 font-medium">Thank you! We'll be in touch with you soon.</p>
         )}
         {error && (
           <p className="mt-4 text-red-600 font-medium">{error}</p>

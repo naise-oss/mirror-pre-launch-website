@@ -86,7 +86,11 @@ export function HeroSection() {
             </button>
           </div>
 
-          {submitted && <p className="text-sm text-green-600 font-medium">Thank you! Check your email.</p>}
+          {submitted && (
+            <p className="text-sm text-green-600 font-medium">
+              Thank you! We'll be in touch with you soon.
+            </p>
+          )}
           {error && <p className="text-sm text-red-600 font-medium">{error}</p>}
         </form>
       </div>
