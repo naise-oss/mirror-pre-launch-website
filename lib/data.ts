@@ -14,11 +14,15 @@ const SUBSCRIBERS_KEY = 'subscribers'
 let redis: Redis | null = null
 
 function getRedis(): Redis | null {
-  if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+  // Try multiple possible environment variable names that Vercel/Upstash might use
+  const redisUrl = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL || process.env.REDIS_URL
+  const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN
+  
+  if (redisUrl && redisToken) {
     if (!redis) {
       redis = new Redis({
-        url: process.env.UPSTASH_REDIS_REST_URL,
-        token: process.env.UPSTASH_REDIS_REST_TOKEN,
+        url: redisUrl,
+        token: redisToken,
       })
     }
     return redis
@@ -28,7 +32,9 @@ function getRedis(): Redis | null {
 
 // Check if we're using Upstash Redis (production)
 function useRedis(): boolean {
-  return !!process.env.UPSTASH_REDIS_REST_URL && !!process.env.UPSTASH_REDIS_REST_TOKEN
+  const redisUrl = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL || process.env.REDIS_URL
+  const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN
+  return !!(redisUrl && redisToken)
 }
 
 // Read subscribers - uses Redis in production, file system locally
@@ -82,10 +88,13 @@ export async function addSubscriber(email: string, source?: string): Promise<Sub
     try {
       const client = getRedis()
       if (!client) {
-        console.error('Redis client not available. Env vars:', {
-          hasUrl: !!process.env.UPSTASH_REDIS_REST_URL,
-          hasToken: !!process.env.UPSTASH_REDIS_REST_TOKEN
-        })
+      console.error('Redis client not available. Env vars:', {
+        hasUpstashUrl: !!process.env.UPSTASH_REDIS_REST_URL,
+        hasUpstashToken: !!process.env.UPSTASH_REDIS_REST_TOKEN,
+        hasKvUrl: !!process.env.KV_REST_API_URL,
+        hasKvToken: !!process.env.KV_REST_API_TOKEN,
+        hasRedisUrl: !!process.env.REDIS_URL
+      })
         throw new Error('Redis client not available')
       }
       await client.set(SUBSCRIBERS_KEY, subscribers)
@@ -95,8 +104,11 @@ export async function addSubscriber(email: string, source?: string): Promise<Sub
       console.error('Redis error details:', {
         message: error.message,
         name: error.name,
-        hasUrl: !!process.env.UPSTASH_REDIS_REST_URL,
-        hasToken: !!process.env.UPSTASH_REDIS_REST_TOKEN
+        hasUpstashUrl: !!process.env.UPSTASH_REDIS_REST_URL,
+        hasUpstashToken: !!process.env.UPSTASH_REDIS_REST_TOKEN,
+        hasKvUrl: !!process.env.KV_REST_API_URL,
+        hasKvToken: !!process.env.KV_REST_API_TOKEN,
+        hasRedisUrl: !!process.env.REDIS_URL
       })
       throw new Error(`Failed to save subscriber: ${error.message}`)
     }
