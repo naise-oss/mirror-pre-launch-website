@@ -41,8 +41,18 @@ export async function POST(request: NextRequest) {
     }
 
     console.error('Error adding subscriber:', error)
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      hasRedis: !!process.env.UPSTASH_REDIS_REST_URL,
+      nodeEnv: process.env.NODE_ENV
+    })
+    
     return NextResponse.json(
-      { error: 'Failed to subscribe. Please try again.' },
+      { 
+        error: 'Failed to subscribe. Please try again.',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      },
       { status: 500 }
     )
   }

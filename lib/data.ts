@@ -82,12 +82,23 @@ export async function addSubscriber(email: string, source?: string): Promise<Sub
     try {
       const client = getRedis()
       if (!client) {
+        console.error('Redis client not available. Env vars:', {
+          hasUrl: !!process.env.UPSTASH_REDIS_REST_URL,
+          hasToken: !!process.env.UPSTASH_REDIS_REST_TOKEN
+        })
         throw new Error('Redis client not available')
       }
       await client.set(SUBSCRIBERS_KEY, subscribers)
-    } catch (error) {
+      console.log('Successfully saved to Redis')
+    } catch (error: any) {
       console.error('Error saving to Redis:', error)
-      throw new Error('Failed to save subscriber')
+      console.error('Redis error details:', {
+        message: error.message,
+        name: error.name,
+        hasUrl: !!process.env.UPSTASH_REDIS_REST_URL,
+        hasToken: !!process.env.UPSTASH_REDIS_REST_TOKEN
+      })
+      throw new Error(`Failed to save subscriber: ${error.message}`)
     }
   } else {
     // Local development - save to file
